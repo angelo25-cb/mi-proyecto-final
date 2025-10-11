@@ -3,10 +3,22 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../dao/mock_dao_factory.dart';
+<<<<<<< HEAD
 import '../models/espacio.dart';
 import 'lista_espacios_screen.dart';
 import 'detalle_espacio_screen.dart';
 import 'crear_espacio_screen.dart'; // 👈 pantalla de creación
+=======
+import '../dao/auth_service.dart';
+import '../models/espacio.dart';
+import '../models/estudiante.dart';
+import '../models/administrador_sistema.dart';
+import 'lista_espacios_screen.dart';
+import 'detalle_espacio_screen.dart';
+import 'crear_espacio_screen.dart'; // 👈 pantalla de creación
+import 'profile_screen.dart';
+import 'admin_profile_screen.dart';
+>>>>>>> main
 
 class MapaScreen extends StatefulWidget {
   const MapaScreen({super.key});
@@ -90,6 +102,33 @@ class _MapaScreenState extends State<MapaScreen> {
     );
   }
 
+<<<<<<< HEAD
+=======
+  /// Navega al perfil apropiado según el tipo de usuario
+  void _navigateToProfile() {
+    final usuario = AuthService().usuarioActual;
+    
+    if (usuario == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No hay usuario autenticado')),
+      );
+      return;
+    }
+
+    if (usuario is AdministradorSistema) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AdminProfileScreen()),
+      );
+    } else if (usuario is Estudiante) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const UserProfileScreen()),
+      );
+    }
+  }
+
+>>>>>>> main
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -109,6 +148,14 @@ class _MapaScreenState extends State<MapaScreen> {
               );
             },
           ),
+<<<<<<< HEAD
+=======
+          IconButton(
+            icon: const Icon(Icons.person),
+            tooltip: 'Mi Perfil',
+            onPressed: _navigateToProfile,
+          ),
+>>>>>>> main
         ],
       ),
       body: _isLoading

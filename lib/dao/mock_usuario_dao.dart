@@ -4,6 +4,7 @@ import '../models/administrador_sistema.dart';
 import 'usuario_dao.dart';
 
 class MockUsuarioDAO implements UsuarioDAO {
+<<<<<<< HEAD
   static final List<Usuario> _usuarios = [
     Estudiante(
       idUsuario: '1',
@@ -18,6 +19,24 @@ class MockUsuarioDAO implements UsuarioDAO {
     AdministradorSistema(
       idUsuario: '2',
       email: 'admin@universidad.edu',
+=======
+
+  static final List<Usuario> _usuarios = [
+    Estudiante(
+      idUsuario: '1',
+      email: '20251234@aloe.ulima.edu.pe',
+      passwordHash: '123456',
+      fechaCreacion: DateTime.now().subtract(const Duration(days: 30)),
+      estado: EstadoUsuario.activo,
+      codigoAlumno: '20251234',
+      nombreCompleto: 'Juan Pérez',
+      ubicacionCompartida: true,
+      carrera: 'Ingeniería de Sistemas',
+    ),
+    AdministradorSistema(
+      idUsuario: '2',
+      email: 'admin@aloe.ulima.edu.pe',
+>>>>>>> main
       passwordHash: 'admin123',
       fechaCreacion: DateTime.now().subtract(const Duration(days: 60)),
       estado: EstadoUsuario.activo,
@@ -70,4 +89,8 @@ class MockUsuarioDAO implements UsuarioDAO {
     await Future.delayed(const Duration(milliseconds: 100));
     _usuarios.removeWhere((u) => u.idUsuario == id);
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> main

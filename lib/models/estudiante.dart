@@ -5,6 +5,10 @@ class Estudiante extends Usuario {
   final String codigoAlumno;
   final String nombreCompleto;
   final bool ubicacionCompartida;
+<<<<<<< HEAD
+=======
+  final String carrera;
+>>>>>>> main
 
   Estudiante({
     required super.idUsuario,
@@ -15,6 +19,10 @@ class Estudiante extends Usuario {
     required this.codigoAlumno,
     required this.nombreCompleto,
     required this.ubicacionCompartida,
+<<<<<<< HEAD
+=======
+    required this.carrera,
+>>>>>>> main
   });
 
   void verMapa(Ubicacion ubicacionActual) {
@@ -41,6 +49,10 @@ class Estudiante extends Usuario {
       'codigoAlumno': codigoAlumno,
       'nombreCompleto': nombreCompleto,
       'ubicacionCompartida': ubicacionCompartida,
+<<<<<<< HEAD
+=======
+      'carrera': carrera,
+>>>>>>> main
     });
     return json;
   }
@@ -58,6 +70,10 @@ class Estudiante extends Usuario {
       codigoAlumno: json['codigoAlumno'],
       nombreCompleto: json['nombreCompleto'],
       ubicacionCompartida: json['ubicacionCompartida'],
+<<<<<<< HEAD
+=======
+      carrera: json['carrera'] ?? 'No especificada',
+>>>>>>> main
     );
   }
 }

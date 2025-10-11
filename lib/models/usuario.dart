@@ -16,6 +16,7 @@ class Usuario {
     required this.estado,
   });
 
+<<<<<<< HEAD
   bool iniciarSesion(String email, String password) {
     return this.email == email && passwordHash == password.hashCode.toString();
   }
@@ -26,6 +27,9 @@ class Usuario {
 
   void editarPerfil(Map<String, dynamic> datos) {
     // Mock implementation - no real functionality
+=======
+  void editarPerfil(Map<String, dynamic> datos) {
+>>>>>>> main
   }
 
   Map<String, dynamic> toJson() {
@@ -50,4 +54,8 @@ class Usuario {
       ),
     );
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> main
