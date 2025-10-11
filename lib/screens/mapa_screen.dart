@@ -12,6 +12,8 @@ import 'detalle_espacio_screen.dart';
 import 'crear_espacio_screen.dart'; // 👈 pantalla de creación
 import 'profile_screen.dart';
 import 'admin_profile_screen.dart';
+import 'filter_screen.dart';
+import '../models/categoria_espacio.dart';
 
 class MapaScreen extends StatefulWidget {
   const MapaScreen({super.key});
@@ -23,6 +25,9 @@ class MapaScreen extends StatefulWidget {
 class _MapaScreenState extends State<MapaScreen> {
   final MapController _mapController = MapController();
   List<Espacio> _espacios = [];
+  List<Espacio> _filteredEspacios = [];
+  List<CategoriaEspacio> _categorias = [];
+  List<String> _selectedCategoryIds = [];
   bool _isLoading = true;
 
   // Coordenadas del campus de la Universidad de Lima (Lima, Perú)
@@ -31,17 +36,21 @@ class _MapaScreenState extends State<MapaScreen> {
   @override
   void initState() {
     super.initState();
-    _loadEspacios();
+    _loadData();
   }
 
-  Future<void> _loadEspacios() async {
+  Future<void> _loadData() async {
     final daoFactory = Provider.of<MockDAOFactory>(context, listen: false);
     final espacioDAO = daoFactory.createEspacioDAO();
+    final categoriaDAO = daoFactory.createCategoriaDAO();
 
     try {
       final espacios = await espacioDAO.obtenerTodos();
+      final categorias = await categoriaDAO.obtenerTodas();
       setState(() {
         _espacios = espacios;
+        _filteredEspacios = espacios;
+        _categorias = categorias;
         _isLoading = false;
       });
     } catch (e) {
@@ -53,7 +62,7 @@ class _MapaScreenState extends State<MapaScreen> {
   }
 
   Future<void> _refrescarMapa() async {
-    await _loadEspacios();
+    await _loadData();
   }
 
   Color _getOcupacionColor(NivelOcupacion nivel) {
@@ -119,6 +128,15 @@ class _MapaScreenState extends State<MapaScreen> {
     }
   }
 
+  void _applyFilters(List<String> selectedCategoryIds) {
+    setState(() {
+      _selectedCategoryIds = selectedCategoryIds;
+      _filteredEspacios = _espacios.where((espacio) {
+        return _selectedCategoryIds.contains(espacio.tipo);
+      }).toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -134,6 +152,20 @@ class _MapaScreenState extends State<MapaScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => const ListaEspaciosScreen(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FilterScreen(
+                    categorias: _categorias,
+                    onApplyFilters: _applyFilters,
+                  ),
                 ),
               );
             },
@@ -168,7 +200,7 @@ class _MapaScreenState extends State<MapaScreen> {
 
                     // Marcadores
                     MarkerLayer(
-                      markers: _espacios.map((espacio) {
+                      markers: _filteredEspacios.map((espacio) {
                         return Marker(
                           width: 60,
                           height: 60,
