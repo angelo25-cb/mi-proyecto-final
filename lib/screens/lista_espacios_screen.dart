@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../dao/mock_dao_factory.dart';
 import '../models/espacio.dart';
 import 'detalle_espacio_screen.dart';
+import 'filtered_spaces_screen.dart';
 
 class ListaEspaciosScreen extends StatefulWidget {
   const ListaEspaciosScreen({super.key});
@@ -103,6 +104,21 @@ class _ListaEspaciosScreenState extends State<ListaEspaciosScreen> {
         title: const Text('Espacios Disponibles'),
         backgroundColor: const Color(0xFF1976D2),
         foregroundColor: Colors.white,
+        actions: [
+          // Botón para filtrar por categorías
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            tooltip: 'Filtrar por categorías',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FilteredSpacesScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
