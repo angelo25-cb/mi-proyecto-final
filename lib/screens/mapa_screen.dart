@@ -1,7 +1,10 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+
+import '../components/bottom_navbar.dart';              // 👈 usa tu barra reusable
 import '../dao/mock_dao_factory.dart';
 import '../dao/auth_service.dart';
 import '../models/espacio.dart';
@@ -10,9 +13,7 @@ import '../models/administrador_sistema.dart';
 import '../models/usuario.dart';
 import 'lista_espacios_screen.dart';
 import 'detalle_espacio_screen.dart';
-import 'crear_espacio_screen.dart'; // 👈 pantalla de creación
-import 'profile_screen.dart';
-import 'admin_profile_screen.dart';
+import 'crear_espacio_screen.dart';
 
 class MapaScreen extends StatefulWidget {
   const MapaScreen({super.key});
@@ -26,7 +27,6 @@ class _MapaScreenState extends State<MapaScreen> {
   List<Espacio> _espacios = [];
   bool _isLoading = true;
 
-  // Coordenadas del campus de la Universidad de Lima (Lima, Perú)
   static const LatLng _campusCenter = LatLng(-12.084778, -76.971357);
 
   @override
@@ -50,7 +50,6 @@ class _MapaScreenState extends State<MapaScreen> {
         _isLoading = false;
       });
     }
-    print('Espacios cargados: ${_espacios.length}');
   }
 
   Future<void> _refrescarMapa() async {
@@ -72,21 +71,6 @@ class _MapaScreenState extends State<MapaScreen> {
     }
   }
 
-  String _getOcupacionText(NivelOcupacion nivel) {
-    switch (nivel) {
-      case NivelOcupacion.vacio:
-        return 'Vacío';
-      case NivelOcupacion.bajo:
-        return 'Baja ocupación';
-      case NivelOcupacion.medio:
-        return 'Ocupación media';
-      case NivelOcupacion.alto:
-        return 'Alta ocupación';
-      case NivelOcupacion.lleno:
-        return 'Lleno';
-    }
-  }
-
   void _showEspacioDetails(Espacio espacio) {
     Navigator.push(
       context,
@@ -96,34 +80,12 @@ class _MapaScreenState extends State<MapaScreen> {
     );
   }
 
-  /// Navega al perfil apropiado según el tipo de usuario
-  void _navigateToProfile() {
-    final usuario = AuthService().usuarioActual;
-
-    if (usuario == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No hay usuario autenticado')),
-      );
-      return;
-    }
-
-    if (usuario is AdministradorSistema) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const AdminProfileScreen()),
-      );
-    } else if (usuario is Estudiante) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const UserProfileScreen()),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final usuario = AuthService().usuarioActual;
+
     return Scaffold(
+      extendBody: true, // para que la barra “glass” se superponga al mapa
       appBar: AppBar(
         title: const Text('Smart Break'),
         backgroundColor: const Color(0xFF1976D2),
@@ -131,22 +93,17 @@ class _MapaScreenState extends State<MapaScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.list),
+            tooltip: 'Lista de Espacios',
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const ListaEspaciosScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const ListaEspaciosScreen()),
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.person),
-            tooltip: 'Mi Perfil',
-            onPressed: _navigateToProfile,
-          ),
         ],
       ),
+
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Stack(
@@ -156,20 +113,14 @@ class _MapaScreenState extends State<MapaScreen> {
                   options: MapOptions(
                     initialCenter: _campusCenter,
                     initialZoom: 18.0,
-                    interactionOptions: const InteractionOptions(
-                      flags: InteractiveFlag.all,
-                    ),
+                    interactionOptions: const InteractionOptions(flags: InteractiveFlag.all),
                   ),
                   children: [
-                    // Mapa base OpenStreetMap
                     TileLayer(
-                      urlTemplate:
-                          "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                      urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                       subdomains: const ['a', 'b', 'c'],
                       userAgentPackageName: 'com.example.smart_break',
                     ),
-
-                    // Marcadores
                     MarkerLayer(
                       markers: _espacios.map((espacio) {
                         return Marker(
@@ -193,7 +144,7 @@ class _MapaScreenState extends State<MapaScreen> {
                   ],
                 ),
 
-                // Leyenda de colores
+                // Leyenda
                 Positioned(
                   top: 16,
                   right: 16,
@@ -201,37 +152,16 @@ class _MapaScreenState extends State<MapaScreen> {
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
                       child: Column(
-                        mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Ocupación',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
+                          const Text('Ocupación',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                           const SizedBox(height: 8),
-                          _buildLegendItem(
-                            'Vacío',
-                            _getOcupacionColor(NivelOcupacion.vacio),
-                          ),
-                          _buildLegendItem(
-                            'Bajo',
-                            _getOcupacionColor(NivelOcupacion.bajo),
-                          ),
-                          _buildLegendItem(
-                            'Medio',
-                            _getOcupacionColor(NivelOcupacion.medio),
-                          ),
-                          _buildLegendItem(
-                            'Alto',
-                            _getOcupacionColor(NivelOcupacion.alto),
-                          ),
-                          _buildLegendItem(
-                            'Lleno',
-                            _getOcupacionColor(NivelOcupacion.lleno),
-                          ),
+                          _buildLegendItem('Vacío', _getOcupacionColor(NivelOcupacion.vacio)),
+                          _buildLegendItem('Bajo', _getOcupacionColor(NivelOcupacion.bajo)),
+                          _buildLegendItem('Medio', _getOcupacionColor(NivelOcupacion.medio)),
+                          _buildLegendItem('Alto', _getOcupacionColor(NivelOcupacion.alto)),
+                          _buildLegendItem('Lleno', _getOcupacionColor(NivelOcupacion.lleno)),
                         ],
                       ),
                     ),
@@ -240,12 +170,11 @@ class _MapaScreenState extends State<MapaScreen> {
               ],
             ),
 
-      // 🔽 Botones flotantes (crear + centrar) — mostrar 'crear' solo a administradores
+      // FABs: crear (solo admin) + centrar
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (usuario is AdministradorSistema ||
-              (usuario != null && usuario.rol == RolUsuario.admin))
+          if (usuario is AdministradorSistema)
             FloatingActionButton(
               heroTag: 'crear',
               backgroundColor: Colors.green,
@@ -253,25 +182,14 @@ class _MapaScreenState extends State<MapaScreen> {
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) {
-                      final usuarioInner = AuthService().usuarioActual;
-                      if (usuarioInner == null) {
-                        return const Scaffold(
-                          body: Center(
-                            child: Text('No hay usuario autenticado'),
-                          ),
-                        );
-                      }
-                      return CrearEspacioScreen(usuarioActual: usuarioInner);
-                    },
+                    builder: (context) => CrearEspacioScreen(usuarioActual: usuario),
                   ),
                 );
-                await _refrescarMapa(); // 🔄 refresca el mapa al volver
+                await _refrescarMapa();
               },
               child: const Icon(Icons.add, color: Colors.white),
             ),
-
-          const SizedBox(height: 10),
+          if (usuario is AdministradorSistema) const SizedBox(height: 10),
           FloatingActionButton(
             heroTag: 'centrar',
             backgroundColor: const Color(0xFF1976D2),
@@ -282,6 +200,27 @@ class _MapaScreenState extends State<MapaScreen> {
           ),
         ],
       ),
+
+      // 👇 Barra reusable (índice 0 = Mapa)
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: 0,
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              // Ya estás en Mapa
+              break;
+            case 1:
+              Navigator.pushReplacementNamed(context, '/amigos');
+              break;
+            case 2:
+              Navigator.pushReplacementNamed(context, '/eventos');
+              break;
+            case 3:
+              Navigator.pushReplacementNamed(context, '/perfil');
+              break;
+          }
+        },
+      ),
     );
   }
 
@@ -289,13 +228,8 @@ class _MapaScreenState extends State<MapaScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2.0),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
+          Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
           const SizedBox(width: 8),
           Text(label, style: const TextStyle(fontSize: 12)),
         ],

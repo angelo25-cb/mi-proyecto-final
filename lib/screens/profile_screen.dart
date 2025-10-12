@@ -6,17 +6,7 @@ import '../models/estudiante.dart';
 import '../models/usuario.dart';
 import 'gestionar_categorias_screen.dart';
 import 'welcome_screen.dart';
-
-class MapaScreen extends StatelessWidget {
-  const MapaScreen({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Mapa')),
-      body: const Center(child: Text('Pantalla de Mapa (Ruta de Regreso)')),
-    );
-  }
-}
+import '../components/bottom_navbar.dart'; // 👈 Barra inferior reusable
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -75,7 +65,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         });
       }
     } else {
-      // Fallback al método anterior si no hay usuario en AuthService
       final daoFactory = Provider.of<DAOFactory>(context, listen: false);
       final usuarioDAO = daoFactory.createUsuarioDAO();
 
@@ -138,10 +127,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
 
     if (confirmar == true) {
-      // Cerrar sesión
       AuthService().logout();
-
-      // Navegar a la pantalla de bienvenida y limpiar el stack
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
@@ -205,9 +191,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       );
     }
 
-    final initials = (_userProfile!.nombreCompleto.split(
-      ' ',
-    )..retainWhere((s) => s.isNotEmpty)).map((s) => s[0].toUpperCase()).join();
+    final initials = (_userProfile!.nombreCompleto.split(' ')
+      ..retainWhere((s) => s.isNotEmpty))
+        .map((s) => s[0].toUpperCase())
+        .join();
 
     return Scaffold(
       appBar: AppBar(
@@ -231,11 +218,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildIdentitySection(
-              initials,
-              _userProfile!,
-              _userProfile!.carrera,
-            ),
+            _buildIdentitySection(initials, _userProfile!, _userProfile!.carrera),
             const SizedBox(height: 32),
             _buildActivityMetrics(),
             const SizedBox(height: 32),
@@ -243,7 +226,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             const SizedBox(height: 32),
             _buildPrivacySettings(),
 
-            // Sección de administración (solo para administradores)
             if (AuthService().isAdmin) ...[
               const SizedBox(height: 32),
               _buildAdminSection(),
@@ -268,7 +250,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ),
               ),
 
-            // Botón de cerrar sesión
             const SizedBox(height: 24),
             OutlinedButton.icon(
               onPressed: _logout,
@@ -288,17 +269,32 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ],
         ),
       ),
+
+      // 👇 Barra inferior añadida (no altera estructura)
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: 3,
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.pushReplacementNamed(context, '/mapa');
+              break;
+            case 1:
+              Navigator.pushReplacementNamed(context, '/amigos');
+              break;
+            case 2:
+              Navigator.pushReplacementNamed(context, '/eventos');
+              break;
+            case 3:
+              // Ya estás en perfil
+              break;
+          }
+        },
+      ),
     );
   }
 
-  Widget _buildIdentitySection(
-    String initials,
-    Estudiante user,
-    String carrera,
-  ) {
-    final displayInitials = initials.length > 2
-        ? initials.substring(0, 2)
-        : initials;
+  Widget _buildIdentitySection(String initials, Estudiante user, String carrera) {
+    final displayInitials = initials.length > 2 ? initials.substring(0, 2) : initials;
 
     return Center(
       child: Column(
@@ -499,14 +495,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ],
             ),
           ),
-
           GestureDetector(
             onTap: onTapStar,
             child: Container(
               width: 24,
               height: 24,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFC107),
+              decoration: const BoxDecoration(
+                color: Color(0xFFFFC107),
                 shape: BoxShape.circle,
               ),
               child: const Center(
@@ -532,7 +527,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
         ),
         const SizedBox(height: 16),
-
         _buildToggleCard(
           'Compartir ubicación',
           Icons.location_on_outlined,
@@ -545,20 +539,21 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           },
         ),
         const SizedBox(height: 12),
-
-        _buildToggleCard('Perfil público', Icons.circle, _perfilPublico, (
-          bool newValue,
-        ) {
-          setState(() {
-            _perfilPublico = newValue;
-            _isSaveButtonVisible = true;
-          });
-        }),
+        _buildToggleCard(
+          'Perfil público',
+          Icons.circle,
+          _perfilPublico,
+          (bool newValue) {
+            setState(() {
+              _perfilPublico = newValue;
+              _isSaveButtonVisible = true;
+            });
+          },
+        ),
       ],
     );
   }
 
-  /// Sección de administración solo para administradores
   Widget _buildAdminSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -574,17 +569,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         const SizedBox(height: 16),
         Card(
           elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const GestionarCategoriasScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const GestionarCategoriasScreen()),
               );
             },
             child: Padding(
@@ -597,11 +588,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       color: const Color(0xFFF97316).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(
-                      Icons.category,
-                      color: Color(0xFFF97316),
-                      size: 24,
-                    ),
+                    child: const Icon(Icons.category, color: Color(0xFFF97316), size: 24),
                   ),
                   const SizedBox(width: 16),
                   const Expanded(
@@ -619,10 +606,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         SizedBox(height: 4),
                         Text(
                           'Administrar tipos de espacio y niveles de ruido',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF718096),
-                          ),
+                          style: TextStyle(fontSize: 12, color: Color(0xFF718096)),
                         ),
                       ],
                     ),
