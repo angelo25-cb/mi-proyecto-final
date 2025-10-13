@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
-import '../components/top_navbar.dart'; //
-import '../components/bottom_navbar.dart';              // 👈 usa tu barra reusable
+import '../components/top_navbar.dart';
+import '../components/bottom_navbar.dart'; // 👈 barra reusable con transparencia
 import '../dao/mock_dao_factory.dart';
 import '../dao/auth_service.dart';
 import '../models/espacio.dart';
@@ -13,7 +13,7 @@ import '../models/administrador_sistema.dart';
 import '../models/usuario.dart';
 import 'lista_espacios_screen.dart';
 import 'detalle_espacio_screen.dart';
-import 'crear_espacio_screen.dart'; // 👈 pantalla de creación
+import 'crear_espacio_screen.dart';
 import 'profile_screen.dart';
 import 'admin_profile_screen.dart';
 import 'filter_screen.dart';
@@ -94,7 +94,7 @@ class _MapaScreenState extends State<MapaScreen> {
   /// Navega al perfil apropiado según el tipo de usuario
   void _navigateToProfile() {
     final usuario = AuthService().usuarioActual;
-    
+
     if (usuario == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No hay usuario autenticado')),
@@ -129,6 +129,7 @@ class _MapaScreenState extends State<MapaScreen> {
     final usuario = AuthService().usuarioActual;
 
     return Scaffold(
+      extendBody: true, // 👈 permite que el mapa se vea detrás del BottomNavBar
       appBar: AppBar(
         title: const Text('Smart Break'),
         backgroundColor: const Color(0xFF1976D2),
@@ -175,11 +176,13 @@ class _MapaScreenState extends State<MapaScreen> {
                   options: MapOptions(
                     initialCenter: _campusCenter,
                     initialZoom: 18.0,
-                    interactionOptions: const InteractionOptions(flags: InteractiveFlag.all),
+                    interactionOptions:
+                        const InteractionOptions(flags: InteractiveFlag.all),
                   ),
                   children: [
                     TileLayer(
-                      urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                      urlTemplate:
+                          "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                       subdomains: const ['a', 'b', 'c'],
                       userAgentPackageName: 'com.example.smart_break',
                     ),
@@ -196,7 +199,8 @@ class _MapaScreenState extends State<MapaScreen> {
                             onTap: () => _showEspacioDetails(espacio),
                             child: Icon(
                               Icons.location_on,
-                              color: _getOcupacionColor(espacio.nivelOcupacion),
+                              color: _getOcupacionColor(
+                                  espacio.nivelOcupacion),
                               size: 40,
                             ),
                           ),
@@ -206,24 +210,31 @@ class _MapaScreenState extends State<MapaScreen> {
                   ],
                 ),
 
-                // Leyenda
+                // Leyenda de colores
                 Positioned(
                   top: 16,
                   right: 16,
                   child: Card(
+                    elevation: 4,
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text('Ocupación',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 14)),
                           const SizedBox(height: 8),
-                          _buildLegendItem('Vacío', _getOcupacionColor(NivelOcupacion.vacio)),
-                          _buildLegendItem('Bajo', _getOcupacionColor(NivelOcupacion.bajo)),
-                          _buildLegendItem('Medio', _getOcupacionColor(NivelOcupacion.medio)),
-                          _buildLegendItem('Alto', _getOcupacionColor(NivelOcupacion.alto)),
-                          _buildLegendItem('Lleno', _getOcupacionColor(NivelOcupacion.lleno)),
+                          _buildLegendItem(
+                              'Vacío', _getOcupacionColor(NivelOcupacion.vacio)),
+                          _buildLegendItem(
+                              'Bajo', _getOcupacionColor(NivelOcupacion.bajo)),
+                          _buildLegendItem('Medio',
+                              _getOcupacionColor(NivelOcupacion.medio)),
+                          _buildLegendItem(
+                              'Alto', _getOcupacionColor(NivelOcupacion.alto)),
+                          _buildLegendItem(
+                              'Lleno', _getOcupacionColor(NivelOcupacion.lleno)),
                         ],
                       ),
                     ),
@@ -244,7 +255,8 @@ class _MapaScreenState extends State<MapaScreen> {
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CrearEspacioScreen(usuarioActual: usuario),
+                    builder: (context) =>
+                        CrearEspacioScreen(usuarioActual: usuario),
                   ),
                 );
                 await _refrescarMapa();
@@ -263,14 +275,13 @@ class _MapaScreenState extends State<MapaScreen> {
         ],
       ),
 
-      // 👇 Barra reusable (índice 0 = Mapa)
+      // 👇 Barra reusable con transparencia
       bottomNavigationBar: BottomNavBar(
         currentIndex: 0,
         onTap: (index) {
           switch (index) {
             case 0:
-              // Ya estás en Mapa
-              break;
+              break; // ya estás en mapa
             case 1:
               Navigator.pushReplacementNamed(context, '/amigos');
               break;
@@ -291,7 +302,12 @@ class _MapaScreenState extends State<MapaScreen> {
       padding: const EdgeInsets.symmetric(vertical: 2.0),
       child: Row(
         children: [
-          Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+          Container(
+            width: 12,
+            height: 12,
+            decoration:
+                BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
           const SizedBox(width: 8),
           Text(label, style: const TextStyle(fontSize: 12)),
         ],

@@ -14,27 +14,25 @@ class BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      minimum: const EdgeInsets.only(bottom: 10), // 👈 sube un poco la barra
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 6.0),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         child: ClipRRect(
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 25.0, sigmaY: 25.0),
             child: Container(
-              height: 85,
+              height: 68, // 👈 altura más controlada para evitar overflow
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2), // transparencia estilo glass
-                border: Border(
-                  top: BorderSide(color: Colors.white.withOpacity(0.15), width: 1),
-                ),
+                color: Colors.white.withOpacity(0.2), // 👈 más transparente
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: Colors.black.withOpacity(0.05),
                     offset: const Offset(0, -2),
-                    blurRadius: 12,
+                    blurRadius: 8,
                   ),
                 ],
               ),
@@ -42,7 +40,7 @@ class BottomNavBar extends StatelessWidget {
                 type: BottomNavigationBarType.fixed,
                 backgroundColor: Colors.transparent,
                 elevation: 0,
-                iconSize: 30,
+                iconSize: 28,
                 currentIndex: currentIndex,
                 selectedItemColor: const Color(0xFFF97316),
                 unselectedItemColor: Colors.grey[700],
@@ -51,7 +49,7 @@ class BottomNavBar extends StatelessWidget {
                 unselectedFontSize: 12,
                 selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
                 onTap: (index) {
-                  // 👇 Muestra SnackBar si presionan "Amigos" o "Eventos"
+                  // 👇 Mensaje temporal si aún no hay funcionalidad
                   if (index == 1 || index == 2) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -65,9 +63,9 @@ class BottomNavBar extends StatelessWidget {
                         margin: const EdgeInsets.all(16),
                       ),
                     );
-                    return; // no ejecuta cambio de pantalla
+                    return;
                   }
-                  onTap(index); // ejecuta acción normal en los demás
+                  onTap(index);
                 },
                 items: const [
                   BottomNavigationBarItem(
