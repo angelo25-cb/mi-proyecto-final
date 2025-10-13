@@ -4,8 +4,12 @@ import 'dao/mock_dao_factory.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/mapa_screen.dart';
 import 'screens/profile_screen.dart';
+import 'package:smart_break/dao/auth_service.dart';
 
-void main() {
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AuthService().cargarSesion(); // 🔹 Carga el usuario si hay sesión guardada
   runApp(const SmartBreakApp());
 }
 
