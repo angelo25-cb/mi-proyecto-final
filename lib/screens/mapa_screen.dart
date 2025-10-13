@@ -130,42 +130,9 @@ class _MapaScreenState extends State<MapaScreen> {
 
     return Scaffold(
       extendBody: true, // 👈 permite que el mapa se vea detrás del BottomNavBar
-      appBar: AppBar(
-        title: const Text('Smart Break'),
-        backgroundColor: const Color(0xFF1976D2),
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.list),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ListaEspaciosScreen(),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => FilterScreen(
-                    categorias: _categorias,
-                    onApplyFilters: _applyFilters,
-                  ),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.person),
-            tooltip: 'Mi Perfil',
-            onPressed: _navigateToProfile,
-          ),
-        ],
+      appBar: TopNavBar(
+        categorias: _categorias,
+        onApplyFilters: _applyFilters,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
