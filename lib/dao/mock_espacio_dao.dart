@@ -13,8 +13,8 @@ class MockEspacioDAO implements EspacioDAO {
       promedioCalificacion: 4.5,
       ubicacion: Ubicacion(
         idUbicacion: '1',
-        latitud: -12.0464,
-        longitud: -77.0428,
+        latitud: -12.085384, 
+        longitud: -76.972002, 
         piso: 1,
       ),
       caracteristicas: [
@@ -37,6 +37,7 @@ class MockEspacioDAO implements EspacioDAO {
           tipoFiltro: 'servicio',
         ),
       ],
+      categoriaIds: const [],
     ),
     Espacio(
       idEspacio: '2',
@@ -46,8 +47,8 @@ class MockEspacioDAO implements EspacioDAO {
       promedioCalificacion: 3.8,
       ubicacion: Ubicacion(
         idUbicacion: '2',
-        latitud: -12.0458,
-        longitud: -77.0432,
+        latitud: -12.084125494983718, 
+        longitud: -76.97080240788367,
         piso: 0,
       ),
       caracteristicas: [
@@ -70,6 +71,7 @@ class MockEspacioDAO implements EspacioDAO {
           tipoFiltro: 'servicio',
         ),
       ],
+      categoriaIds: const [],
     ),
     Espacio(
       idEspacio: '3',
@@ -79,8 +81,8 @@ class MockEspacioDAO implements EspacioDAO {
       promedioCalificacion: 4.7,
       ubicacion: Ubicacion(
         idUbicacion: '3',
-        latitud: -12.0460,
-        longitud: -77.0425,
+        latitud: -12.085493, 
+        longitud: -76.970593,
         piso: 0,
       ),
       caracteristicas: [
@@ -103,6 +105,7 @@ class MockEspacioDAO implements EspacioDAO {
           tipoFiltro: 'servicio',
         ),
       ],
+      categoriaIds: const [],
     ),
     Espacio(
       idEspacio: '4',
@@ -136,6 +139,7 @@ class MockEspacioDAO implements EspacioDAO {
           tipoFiltro: 'servicio',
         ),
       ],
+      categoriaIds: const [],
     ),
     Espacio(
       idEspacio: '5',
@@ -145,8 +149,8 @@ class MockEspacioDAO implements EspacioDAO {
       promedioCalificacion: 3.5,
       ubicacion: Ubicacion(
         idUbicacion: '5',
-        latitud: -12.0455,
-        longitud: -77.0430,
+        latitud: -12.085318620825518, 
+        longitud: -76.97001296236631,
         piso: 0,
       ),
       caracteristicas: [
@@ -169,6 +173,7 @@ class MockEspacioDAO implements EspacioDAO {
           tipoFiltro: 'servicio',
         ),
       ],
+      categoriaIds: const [],
     ),
     Espacio(
       idEspacio: '6',
@@ -178,8 +183,8 @@ class MockEspacioDAO implements EspacioDAO {
       promedioCalificacion: 4.0,
       ubicacion: Ubicacion(
         idUbicacion: '6',
-        latitud: -12.0462,
-        longitud: -77.0438,
+        latitud: -12.085413880927165, 
+        longitud: -76.97162823993533,
         piso: 3,
       ),
       caracteristicas: [
@@ -202,6 +207,7 @@ class MockEspacioDAO implements EspacioDAO {
           tipoFiltro: 'servicio',
         ),
       ],
+      categoriaIds: const [],
     ),
     Espacio(
       idEspacio: '7',
@@ -211,8 +217,8 @@ class MockEspacioDAO implements EspacioDAO {
       promedioCalificacion: 4.3,
       ubicacion: Ubicacion(
         idUbicacion: '7',
-        latitud: -12.0450,
-        longitud: -77.0420,
+        latitud: -12.085550816932631, 
+        longitud: -76.97140706655006,
         piso: 1,
       ),
       caracteristicas: [
@@ -235,6 +241,7 @@ class MockEspacioDAO implements EspacioDAO {
           tipoFiltro: 'servicio',
         ),
       ],
+      categoriaIds: const [],
     ),
   ];
 

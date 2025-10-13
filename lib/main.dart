@@ -2,8 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dao/mock_dao_factory.dart';
 import 'screens/welcome_screen.dart';
+import 'screens/mapa_screen.dart';
+import 'screens/profile_screen.dart';
+import 'package:smart_break/dao/auth_service.dart';
 
-void main() {
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AuthService().cargarSesion(); // 🔹 Carga el usuario si hay sesión guardada
   runApp(const SmartBreakApp());
 }
 
@@ -23,7 +29,7 @@ class SmartBreakApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFFFF772D), 
+            seedColor: const Color(0xFFFF772D),
             brightness: Brightness.light,
           ),
           useMaterial3: true,
@@ -57,7 +63,14 @@ class SmartBreakApp extends StatelessWidget {
             ),
           ),
         ),
-        home: const WelcomeScreen(),
+
+        // 👇 Solo rutas reales, sin pantallas falsas
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const WelcomeScreen(),
+          '/mapa': (context) => const MapaScreen(),
+          '/perfil': (context) => const UserProfileScreen(),
+        },
       ),
     );
   }
