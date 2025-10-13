@@ -14,26 +14,7 @@ class AdministradorSistema extends Usuario {
        );
 
   void crearEspacio(Map<String, dynamic> datosEspacio) {
-    try {
-      final nuevoEspacio = Espacio(
-        idEspacio: datosEspacio['idEspacio'],
-        nombre: datosEspacio['nombre'],
-        tipo: datosEspacio['tipo'],
-        nivelOcupacion: datosEspacio['nivelOcupacion'],
-        promedioCalificacion: (datosEspacio['promedioCalificacion'] ?? 0)
-            .toDouble(),
-        ubicacion: datosEspacio['ubicacion'] as Ubicacion,
-        caracteristicas: [],
-      );
-
-      print('✅ Espacio creado correctamente: ${nuevoEspacio.toJson()}');
-
-      // Aquí podrías usar tu DAO real más adelante, por ejemplo:
-      // final dao = PostgresDAOFactory().createEspacioDAO();
-      // dao.insertar(nuevoEspacio);
-    } catch (e) {
-      print('❌ Error al crear el espacio: $e');
-    }
+    // Implementación futura
   }
 
   void categorizarEspacio(String espacioId, List<String> caracteristicas) {
