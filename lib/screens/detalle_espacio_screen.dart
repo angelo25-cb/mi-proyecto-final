@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import '../models/espacio.dart';
+import '../models/disponibilidad.dart';
+import '../dao/mock_disponibilidad_dao.dart';
 
 class DetalleEspacioScreen extends StatefulWidget {
   final Espacio espacio;
@@ -13,8 +15,27 @@ class DetalleEspacioScreen extends StatefulWidget {
 
 class _DetalleEspacioScreenState extends State<DetalleEspacioScreen> {
   final TextEditingController _comentarioController = TextEditingController();
+  final MockDisponibilidadDAO _daoDisponibilidad = MockDisponibilidadDAO();
+
   double _puntuacion = 0.0;
   bool _isSubmitting = false;
+  String? _estadoSeleccionado; // disponible | ocupado
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarDisponibilidad();
+  }
+
+  Future<void> _cargarDisponibilidad() async {
+    final disponibilidad =
+        await _daoDisponibilidad.obtenerPorEspacio(widget.espacio.idEspacio);
+    if (disponibilidad != null) {
+      setState(() {
+        _estadoSeleccionado = disponibilidad.estado;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -69,6 +90,29 @@ class _DetalleEspacioScreenState extends State<DetalleEspacioScreen> {
     }
   }
 
+  Future<void> _reportarDisponibilidad(String estado) async {
+    setState(() {
+      _estadoSeleccionado = estado;
+    });
+
+    final nueva = Disponibilidad(idEspacio: widget.espacio.idEspacio, estado: estado);
+    await _daoDisponibilidad.guardar(nueva);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          estado == 'disponible'
+              ? '✅ Espacio reportado como disponible'
+              : '🚫 Espacio reportado como ocupado',
+        ),
+        backgroundColor:
+            estado == 'disponible' ? Colors.green : Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   Future<void> _submitCalificacion() async {
     if (_puntuacion == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -81,7 +125,6 @@ class _DetalleEspacioScreenState extends State<DetalleEspacioScreen> {
       _isSubmitting = true;
     });
 
-    // Simular envío
     await Future.delayed(const Duration(seconds: 1));
 
     setState(() {
@@ -113,7 +156,7 @@ class _DetalleEspacioScreenState extends State<DetalleEspacioScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header del espacio
+            // === HEADER DEL ESPACIO ===
             Card(
               elevation: 4,
               shape: RoundedRectangleBorder(
@@ -128,7 +171,8 @@ class _DetalleEspacioScreenState extends State<DetalleEspacioScreen> {
                       children: [
                         CircleAvatar(
                           radius: 30,
-                          backgroundColor: _getOcupacionColor(widget.espacio.nivelOcupacion),
+                          backgroundColor:
+                              _getOcupacionColor(widget.espacio.nivelOcupacion),
                           child: Icon(
                             _getIconForTipo(widget.espacio.tipo),
                             color: Colors.white,
@@ -161,12 +205,13 @@ class _DetalleEspacioScreenState extends State<DetalleEspacioScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Estado de ocupación
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: _getOcupacionColor(widget.espacio.nivelOcupacion).withValues(alpha: 0.1),
+                        color: _getOcupacionColor(widget.espacio.nivelOcupacion)
+                            .withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: _getOcupacionColor(widget.espacio.nivelOcupacion),
@@ -181,9 +226,8 @@ class _DetalleEspacioScreenState extends State<DetalleEspacioScreen> {
                         ),
                       ),
                     ),
-                    
                     const SizedBox(height: 16),
-                    
+
                     // Calificación promedio
                     Row(
                       children: [
@@ -202,10 +246,43 @@ class _DetalleEspacioScreenState extends State<DetalleEspacioScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
-            // Ubicación
+
+            // === NUEVO BLOQUE: Reportar disponibilidad ===
+            Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Reportar disponibilidad',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildEstadoButton('disponible', Colors.green),
+                        _buildEstadoButton('ocupado', Colors.redAccent),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // === UBICACIÓN ===
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
@@ -236,17 +313,18 @@ class _DetalleEspacioScreenState extends State<DetalleEspacioScreen> {
                       children: [
                         const Icon(Icons.my_location, color: Colors.blue),
                         const SizedBox(width: 8),
-                        Text('${widget.espacio.ubicacion.latitud.toStringAsFixed(4)}, ${widget.espacio.ubicacion.longitud.toStringAsFixed(4)}'),
+                        Text(
+                            '${widget.espacio.ubicacion.latitud.toStringAsFixed(4)}, ${widget.espacio.ubicacion.longitud.toStringAsFixed(4)}'),
                       ],
                     ),
                   ],
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
-            // Características
+
+            // === CARACTERÍSTICAS ===
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
@@ -280,10 +358,10 @@ class _DetalleEspacioScreenState extends State<DetalleEspacioScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
-            // Calificaciones existentes
+
+            // === CALIFICACIONES MOCK ===
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
@@ -302,7 +380,6 @@ class _DetalleEspacioScreenState extends State<DetalleEspacioScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    // Mock calificaciones
                     _buildCalificacionItem(
                       puntuacion: 5,
                       comentario: 'Excelente lugar para estudiar, muy silencioso',
@@ -324,10 +401,10 @@ class _DetalleEspacioScreenState extends State<DetalleEspacioScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
-            // Formulario de calificación
+
+            // === FORMULARIO DE CALIFICACIÓN ===
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
@@ -346,8 +423,6 @@ class _DetalleEspacioScreenState extends State<DetalleEspacioScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
-                    // Rating bar
                     Center(
                       child: RatingBar.builder(
                         initialRating: _puntuacion,
@@ -367,10 +442,7 @@ class _DetalleEspacioScreenState extends State<DetalleEspacioScreen> {
                         },
                       ),
                     ),
-                    
                     const SizedBox(height: 16),
-                    
-                    // Comentario
                     TextField(
                       controller: _comentarioController,
                       decoration: const InputDecoration(
@@ -380,10 +452,7 @@ class _DetalleEspacioScreenState extends State<DetalleEspacioScreen> {
                       ),
                       maxLines: 3,
                     ),
-                    
                     const SizedBox(height: 16),
-                    
-                    // Botón enviar
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -402,7 +471,8 @@ class _DetalleEspacioScreenState extends State<DetalleEspacioScreen> {
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor:
+                                      AlwaysStoppedAnimation<Color>(Colors.white),
                                 ),
                               )
                             : const Text(
@@ -416,6 +486,33 @@ class _DetalleEspacioScreenState extends State<DetalleEspacioScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEstadoButton(String estado, Color color) {
+    final bool isSelected = _estadoSeleccionado == estado;
+
+    return ElevatedButton.icon(
+      onPressed: () => _reportarDisponibilidad(estado),
+      icon: Icon(
+        estado == 'disponible' ? Icons.check_circle : Icons.cancel,
+        color: isSelected ? Colors.white : color,
+      ),
+      label: Text(
+        estado == 'disponible' ? 'Disponible' : 'Ocupado',
+        style: TextStyle(
+          color: isSelected ? Colors.white : color,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isSelected ? color : Colors.white,
+        side: BorderSide(color: color, width: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
         ),
       ),
     );
@@ -440,28 +537,20 @@ class _DetalleEspacioScreenState extends State<DetalleEspacioScreen> {
                 allowHalfRating: false,
                 itemCount: 5,
                 itemSize: 16,
-                itemBuilder: (context, _) => const Icon(
-                  Icons.star,
-                  color: Colors.amber,
-                ),
+                itemBuilder: (context, _) =>
+                    const Icon(Icons.star, color: Colors.amber),
                 onRatingUpdate: (rating) {},
                 ignoreGestures: true,
               ),
               const Spacer(),
               Text(
                 '${fecha.day}/${fecha.month}/${fecha.year}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          Text(
-            comentario,
-            style: const TextStyle(fontSize: 14),
-          ),
+          Text(comentario, style: const TextStyle(fontSize: 14)),
         ],
       ),
     );
