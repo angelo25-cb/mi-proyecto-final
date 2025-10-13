@@ -520,53 +520,41 @@ class _GestionarCategoriasScreenState extends State<GestionarCategoriasScreen> {
                             child: DropdownButtonFormField<Espacio?>(
                               value: _espacioSeleccionado,
                               decoration: InputDecoration(
-                                labelText: !_dropdownInteractuado ? 'Selecciona un espacio' : null,
-                                labelStyle: TextStyle(
-                                  color: Colors.grey[700],
-                                  fontSize: 14,
-                                ),
-                                prefixIcon: const Icon(
-                                  Icons.location_on_outlined,
-                                  color: Color(0xFFF97316),
-                                  size: 22,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide.none,
-                                ),
-                                filled: true,
-                                fillColor: Colors.white,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 14,
-                                ),
+                              hintText: 'Selecciona un espacio',
+                              hintStyle: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
                               ),
-                              items: [
-                                const DropdownMenuItem<Espacio?>(
-                                  value: null,
-                                  child: Text(
-                                    '-- None --',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w400,
-                                      color: Colors.grey,
-                                      fontStyle: FontStyle.italic,
-                                    ),
+                              prefixIcon: const Icon(
+                                Icons.location_on_outlined,
+                                color: Color(0xFFF97316),
+                                size: 22,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 14,
+                              ),
+                            ),
+
+                              items: _espacios.map((espacio) {
+                              return DropdownMenuItem<Espacio?>(
+                                value: espacio,
+                                child: Text(
+                                  espacio.nombre,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                ..._espacios.map((espacio) {
-                                  return DropdownMenuItem<Espacio?>(
-                                    value: espacio,
-                                    child: Text(
-                                      espacio.nombre,
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ],
+                              );
+                            }).toList(),
+
                               onChanged: (espacio) {
                                 setState(() {
                                   _dropdownInteractuado = true;
