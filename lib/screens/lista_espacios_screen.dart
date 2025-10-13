@@ -20,8 +20,24 @@ class _ListaEspaciosScreenState extends State<ListaEspaciosScreen> {
   String _filtroOcupacion = 'Todos';
   String _busqueda = '';
 
-  final List<String> _tipos = ['Todos', 'Biblioteca', 'Cafetería', 'Exterior', 'Sala de Estudio', 'Comedor', 'Laboratorio', 'Auditorio'];
-  final List<String> _ocupaciones = ['Todos', 'Vacío', 'Bajo', 'Medio', 'Alto', 'Lleno'];
+  final List<String> _tipos = [
+    'Todos',
+    'Biblioteca',
+    'Cafetería',
+    'Exterior',
+    'Sala de Estudio',
+    'Comedor',
+    'Laboratorio',
+    'Auditorio'
+  ];
+  final List<String> _ocupaciones = [
+    'Todos',
+    'Vacío',
+    'Bajo',
+    'Medio',
+    'Alto',
+    'Lleno'
+  ];
 
   @override
   void initState() {
@@ -32,7 +48,7 @@ class _ListaEspaciosScreenState extends State<ListaEspaciosScreen> {
   Future<void> _loadEspacios() async {
     final daoFactory = Provider.of<MockDAOFactory>(context, listen: false);
     final espacioDAO = daoFactory.createEspacioDAO();
-    
+
     try {
       final espacios = await espacioDAO.obtenerTodos();
       setState(() {
@@ -50,18 +66,17 @@ class _ListaEspaciosScreenState extends State<ListaEspaciosScreen> {
   void _aplicarFiltros() {
     setState(() {
       _espaciosFiltrados = _espacios.where((espacio) {
-        // Filtro por tipo
-        bool cumpleTipo = _filtroTipo == 'Todos' || espacio.tipo == _filtroTipo;
-        
-        // Filtro por ocupación
-        bool cumpleOcupacion = _filtroOcupacion == 'Todos' || 
-            espacio.nivelOcupacion.name.toLowerCase() == _filtroOcupacion.toLowerCase();
-        
-        // Filtro por búsqueda
+        bool cumpleTipo =
+            _filtroTipo == 'Todos' || espacio.tipo == _filtroTipo;
+
+        bool cumpleOcupacion = _filtroOcupacion == 'Todos' ||
+            espacio.nivelOcupacion.name.toLowerCase() ==
+                _filtroOcupacion.toLowerCase();
+
         bool cumpleBusqueda = _busqueda.isEmpty ||
             espacio.nombre.toLowerCase().contains(_busqueda.toLowerCase()) ||
             espacio.tipo.toLowerCase().contains(_busqueda.toLowerCase());
-        
+
         return cumpleTipo && cumpleOcupacion && cumpleBusqueda;
       }).toList();
     });
@@ -97,15 +112,27 @@ class _ListaEspaciosScreenState extends State<ListaEspaciosScreen> {
     }
   }
 
+  /// 🟢 Nueva función: calcula la disponibilidad
+  String _getDisponibilidad(NivelOcupacion nivel) {
+    switch (nivel) {
+      case NivelOcupacion.vacio:
+      case NivelOcupacion.bajo:
+      case NivelOcupacion.medio:
+        return 'Disponible';
+      case NivelOcupacion.alto:
+      case NivelOcupacion.lleno:
+        return 'Ocupado';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Espacios Disponibles'),
-        backgroundColor: const Color(0xFF1976D2),
+        backgroundColor: const Color(0xFFF97316),
         foregroundColor: Colors.white,
         actions: [
-          // Botón para filtrar por categorías
           IconButton(
             icon: const Icon(Icons.filter_list),
             tooltip: 'Filtrar por categorías',
@@ -145,7 +172,7 @@ class _ListaEspaciosScreenState extends State<ListaEspaciosScreen> {
                     },
                   ),
                 ),
-                
+
                 // Filtros
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -153,13 +180,14 @@ class _ListaEspaciosScreenState extends State<ListaEspaciosScreen> {
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          initialValue: _filtroTipo,
+                          value: _filtroTipo,
                           decoration: InputDecoration(
                             labelText: 'Tipo',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
                           ),
                           items: _tipos.map((String tipo) {
                             return DropdownMenuItem<String>(
@@ -178,13 +206,14 @@ class _ListaEspaciosScreenState extends State<ListaEspaciosScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          initialValue: _filtroOcupacion,
+                          value: _filtroOcupacion,
                           decoration: InputDecoration(
                             labelText: 'Ocupación',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
                           ),
                           items: _ocupaciones.map((String ocupacion) {
                             return DropdownMenuItem<String>(
@@ -203,9 +232,9 @@ class _ListaEspaciosScreenState extends State<ListaEspaciosScreen> {
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Lista de espacios
                 Expanded(
                   child: _espaciosFiltrados.isEmpty
@@ -220,76 +249,14 @@ class _ListaEspaciosScreenState extends State<ListaEspaciosScreen> {
                           itemCount: _espaciosFiltrados.length,
                           itemBuilder: (context, index) {
                             final espacio = _espaciosFiltrados[index];
+                            final disponibilidad = _getDisponibilidad(espacio.nivelOcupacion);
+
                             return Card(
                               margin: const EdgeInsets.only(bottom: 12),
                               elevation: 2,
-                              shape: RoundedRectangleBorder(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              child: InkWell(
                                 borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.all(16),
-                                leading: CircleAvatar(
-                                  backgroundColor: _getOcupacionColor(espacio.nivelOcupacion),
-                                  child: Icon(
-                                    _getIconForTipo(espacio.tipo),
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                title: Text(
-                                  espacio.nombre,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      espacio.tipo,
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: _getOcupacionColor(espacio.nivelOcupacion).withValues(alpha: 0.2),
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          child: Text(
-                                            _getOcupacionText(espacio.nivelOcupacion),
-                                            style: TextStyle(
-                                              color: _getOcupacionColor(espacio.nivelOcupacion),
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Row(
-                                          children: [
-                                            const Icon(Icons.star, color: Colors.amber, size: 16),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              espacio.promedioCalificacion.toStringAsFixed(1),
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                                 onTap: () {
                                   Navigator.push(
                                     context,
@@ -298,10 +265,111 @@ class _ListaEspaciosScreenState extends State<ListaEspaciosScreen> {
                                     ),
                                   );
                                 },
+                                child: Stack(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // 🔸 Fila superior: ícono + nombre + disponibilidad
+                                          Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              CircleAvatar(
+                                                backgroundColor: _getOcupacionColor(espacio.nivelOcupacion),
+                                                child: Icon(_getIconForTipo(espacio.tipo), color: Colors.white),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Text(
+                                                  espacio.nombre,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Icon(Icons.circle,
+                                                      size: 12,
+                                                      color: disponibilidad == 'Disponible'
+                                                          ? Colors.green
+                                                          : Colors.red),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    disponibilidad,
+                                                    style: TextStyle(
+                                                      color: disponibilidad == 'Disponible'
+                                                          ? Colors.green
+                                                          : Colors.red,
+                                                      fontSize: 14,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            espacio.tipo,
+                                            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Row(
+                                            children: [
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: _getOcupacionColor(espacio.nivelOcupacion).withOpacity(0.15),
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                                child: Text(
+                                                  _getOcupacionText(espacio.nivelOcupacion),
+                                                  style: TextStyle(
+                                                    color: _getOcupacionColor(espacio.nivelOcupacion),
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              const Icon(Icons.star, color: Colors.amber, size: 16),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                espacio.promedioCalificacion.toStringAsFixed(1),
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    // 👇 Flecha centrada verticalmente
+                                    Positioned(
+                                      right: 10,
+                                      top: 0,
+                                      bottom: 0,
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.arrow_forward_ios,
+                                          size: 20,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             );
                           },
                         ),
+
                 ),
               ],
             ),
