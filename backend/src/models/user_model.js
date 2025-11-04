@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { randomUUID } = require('crypto');
 
 const ESTADOS = ['activo', 'inactivo', 'suspendido'];
-const ROLES = ['admin', 'estudiante'];
+const ROLES   = ['admin', 'estudiante'];
 
 const userSchema = new mongoose.Schema(
   {
@@ -38,6 +38,27 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ROLES,
       default: 'estudiante',
+      required: true,
+    },
+
+    // ---- Campos extra solo para rol=estudiante (planos, como en tu front) ----
+    codigoAlumno: {
+      type: String,
+      required: function () { return this.rol === 'estudiante'; },
+    },
+    nombreCompleto: {
+      type: String,
+      required: function () { return this.rol === 'estudiante'; },
+      trim: true,
+    },
+    ubicacionCompartida: {
+      type: Boolean,
+      default: false,
+    },
+    carrera: {
+      type: String,
+      default: function () { return this.rol === 'estudiante' ? 'No especificada' : undefined; },
+      trim: true,
     },
   },
   { versionKey: false }

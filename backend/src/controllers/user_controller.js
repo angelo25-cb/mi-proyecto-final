@@ -1,47 +1,64 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/user_model');
 
-// Crear usuario
+// POST /api/v1/usuarios
 async function crearUsuario(req, res) {
   try {
-    const { email, password, rol, estado } = req.body;
-
+    const { email, password, rol = 'estudiante', estado = 'activo' } = req.body;
     if (!email || !password) {
       return res.status(400).json({ message: 'email y password son obligatorios' });
     }
 
     const existe = await User.findOne({ email });
-    if (existe) {
-      return res.status(400).json({ message: 'El correo ya está registrado' });
-    }
+    if (existe) return res.status(400).json({ message: 'El correo ya está registrado' });
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const nuevoUsuario = await User.create({
-      email,
-      passwordHash,
-      rol: rol || 'estudiante',
-      estado: estado || 'activo',
-    });
+    // Datos comunes
+    const base = { email, passwordHash, rol, estado };
 
-    const usuarioJson = nuevoUsuario.toJSON();
-    delete usuarioJson.passwordHash;
+    // Si es estudiante, exigir y mapear extras
+    if (rol === 'estudiante') {
+      const {
+        codigoAlumno,
+        nombreCompleto,
+        ubicacionCompartida = false,
+        carrera = 'No especificada',
+      } = req.body;
 
-    return res.status(201).json({ message: 'Usuario creado', usuario: usuarioJson });
+      if (!codigoAlumno || !nombreCompleto) {
+        return res.status(400).json({
+          message: 'Faltan campos de estudiante: codigoAlumno y nombreCompleto',
+        });
+      }
+
+      Object.assign(base, {
+        codigoAlumno,
+        nombreCompleto,
+        ubicacionCompartida,
+        carrera,
+      });
+    }
+
+    const nuevo = await User.create(base);
+    const json = nuevo.toJSON();
+    delete json.passwordHash;
+
+    return res.status(201).json({ message: 'Usuario creado', usuario: json });
   } catch (err) {
-    console.error('Error al crear usuario:', err);
-    res.status(500).json({ message: 'Error al crear usuario', error: err.message });
+    console.error(err);
+    return res.status(500).json({ message: 'Error al crear usuario', error: err.message });
   }
 }
 
-// Listar usuarios
+// GET /api/v1/usuarios
 async function listarUsuarios(_req, res) {
   try {
     const usuarios = await User.find().select('-passwordHash');
-    res.json(usuarios);
+    return res.json(usuarios);
   } catch (err) {
-    console.error('Error al listar usuarios:', err);
-    res.status(500).json({ message: 'Error al listar usuarios', error: err.message });
+    console.error(err);
+    return res.status(500).json({ message: 'Error al listar usuarios', error: err.message });
   }
 }
 
