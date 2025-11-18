@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+// DAO Factory (usa backend para auth y espacios)
 import 'dao/dao_factory.dart';
-import 'dao/http_dao_factory.dart';        // 👈 NUEVO: factory que usa el backend
+import 'dao/http_dao_factory.dart';
+
+// Servicios
+import 'dao/auth_service.dart';
+
+// Pantallas
 import 'screens/welcome_screen.dart';
 import 'screens/mapa_screen.dart';
 import 'screens/profile_screen.dart';
-import 'dao/auth_service.dart';           // ya lo tenías como package, lo dejo relativo
+import 'screens/admin_profile_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await AuthService().cargarSesion(); // 🔹 Carga el usuario si hay sesión guardada
+
+  // 🔹 Cargar sesión guardada (si existe un token en SharedPreferences)
+  await AuthService().cargarSesion();
+
   runApp(const SmartBreakApp());
 }
 
@@ -21,52 +30,39 @@ class SmartBreakApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // 👇 AuthService como ChangeNotifier (opcional pero útil)
+        // 🔹 AuthService como ChangeNotifier
         ChangeNotifierProvider<AuthService>(
           create: (_) => AuthService(),
         ),
 
-        // 👇 Aquí elegimos la implementación REAL de los DAOs
+        // 🔹 DAOFactory usando backend
         Provider<DAOFactory>(
-          create: (_) => HttpDAOFactory(), // Usa backend para AuthDAO
+          create: (_) => HttpDAOFactory(),
         ),
       ],
       child: MaterialApp(
-        title: 'Smart Break',
+        title: 'SmartBreak',
         debugShowCheckedModeBanner: false,
+
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFFFF772D),
-            brightness: Brightness.light,
+            seedColor: const Color(0xFFF97316),
           ),
           useMaterial3: true,
+
           appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFFFF772D),
+            backgroundColor: Color(0xFFF97316),
             foregroundColor: Colors.white,
             elevation: 0,
           ),
+
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF772D),
+              backgroundColor: const Color(0xFFF97316),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
-            ),
-          ),
-          cardTheme: CardThemeData(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
             ),
           ),
         ),
@@ -76,6 +72,7 @@ class SmartBreakApp extends StatelessWidget {
           '/': (context) => const WelcomeScreen(),
           '/mapa': (context) => const MapaScreen(),
           '/perfil': (context) => const UserProfileScreen(),
+          '/admin': (context) => const AdminProfileScreen(),
         },
       ),
     );
