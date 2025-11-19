@@ -4,7 +4,7 @@ class Ubicacion {
   final String idUbicacion;
   final double latitud;
   final double longitud;
-  final int piso;
+  final int piso;   // mantenemos int
 
   Ubicacion({
     required this.idUbicacion,
@@ -14,7 +14,6 @@ class Ubicacion {
   });
 
   List<Espacio> obtenerCercanos(double radioKm) {
-    // Mock implementation - returns empty list
     return [];
   }
 
@@ -28,11 +27,20 @@ class Ubicacion {
   }
 
   factory Ubicacion.fromJson(Map<String, dynamic> json) {
+    // El valor puede venir como int o String → convertirlo a int sí o sí
+    final pisoRaw = json['piso'];
+
     return Ubicacion(
-      idUbicacion: json['idUbicacion'],
-      latitud: json['latitud'].toDouble(),
-      longitud: json['longitud'].toDouble(),
-      piso: json['piso'],
+      idUbicacion: json['idUbicacion']?.toString() ?? '',
+      latitud: (json['latitud'] is num)
+          ? (json['latitud'] as num).toDouble()
+          : double.parse(json['latitud'].toString()),
+      longitud: (json['longitud'] is num)
+          ? (json['longitud'] as num).toDouble()
+          : double.parse(json['longitud'].toString()),
+      piso: (pisoRaw is int)
+          ? pisoRaw
+          : int.tryParse(pisoRaw.toString()) ?? 0,   // 👈 evita error
     );
   }
 }

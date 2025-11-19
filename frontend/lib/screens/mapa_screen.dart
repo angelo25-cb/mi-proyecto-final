@@ -4,20 +4,17 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../components/top_navbar.dart';
-import '../components/bottom_navbar.dart'; // 👈 barra reusable con transparencia
+import '../components/bottom_navbar.dart';
 import '../dao/dao_factory.dart';
 import '../dao/auth_service.dart';
 import '../models/espacio.dart';
 import '../models/estudiante.dart';
 import '../models/administrador_sistema.dart';
-import '../models/usuario.dart';
-import 'lista_espacios_screen.dart';
+import '../models/categoria_espacio.dart';
 import 'detalle_espacio_screen.dart';
 import 'crear_espacio_screen.dart';
 import 'profile_screen.dart';
 import 'admin_profile_screen.dart';
-import 'filter_screen.dart';
-import '../models/categoria_espacio.dart';
 
 class MapaScreen extends StatefulWidget {
   const MapaScreen({super.key});
@@ -28,12 +25,15 @@ class MapaScreen extends StatefulWidget {
 
 class _MapaScreenState extends State<MapaScreen> {
   final MapController _mapController = MapController();
+
   List<Espacio> _espacios = [];
   List<Espacio> _filteredEspacios = [];
   List<CategoriaEspacio> _categorias = [];
   List<String> _selectedCategoryIds = [];
+
   bool _isLoading = true;
 
+  // Centro del campus
   static const LatLng _campusCenter = LatLng(-12.084778, -76.971357);
 
   @override
@@ -42,26 +42,39 @@ class _MapaScreenState extends State<MapaScreen> {
     _loadData();
   }
 
+  /// Cargar espacios y categorías desde DAO (mock o backend)
   Future<void> _loadData() async {
-    final daoFactory = Provider.of<DAOFactory>(context, listen: false);
-    final espacioDAO = daoFactory.createEspacioDAO();
-    final categoriaDAO = daoFactory.createCategoriaDAO();
+  final daoFactory = Provider.of<DAOFactory>(context, listen: false);
+  final espacioDAO = daoFactory.createEspacioDAO();
+  final categoriaDAO = daoFactory.createCategoriaDAO();
 
-    try {
-      final espacios = await espacioDAO.obtenerTodos();
-      final categorias = await categoriaDAO.obtenerTodas();
-      setState(() {
-        _espacios = espacios;
-        _filteredEspacios = espacios;
-        _categorias = categorias;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+  try {
+    final espacios = await espacioDAO.obtenerTodos();
+    final categorias = await categoriaDAO.obtenerTodas();
+
+    // 👇 DEBUG: imprime lo que llega
+    // (mira la consola de Android Studio / VS Code)
+    // ************************************************
+    print('>>> ESPACIOS RECIBIDOS: ${espacios.length}');
+    for (final e in espacios) {
+      print(' - ${e.nombre} @ ${e.ubicacion.latitud}, ${e.ubicacion.longitud}');
     }
+    // ************************************************
+
+    setState(() {
+      _espacios = espacios;
+      _filteredEspacios = espacios; // sin filtros por ahora
+      _categorias = categorias;
+      _isLoading = false;
+    });
+  } catch (e, st) {
+    print('ERROR CARGANDO ESPACIOS: $e');
+    print(st);
+    setState(() {
+      _isLoading = false;
+    });
   }
+}
 
   Future<void> _refrescarMapa() async {
     await _loadData();
@@ -91,36 +104,11 @@ class _MapaScreenState extends State<MapaScreen> {
     );
   }
 
-  /// Navega al perfil apropiado según el tipo de usuario
-  void _navigateToProfile() {
-    final usuario = AuthService().usuarioActual;
-
-    if (usuario == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No hay usuario autenticado')),
-      );
-      return;
-    }
-
-    if (usuario is AdministradorSistema) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const AdminProfileScreen()),
-      );
-    } else if (usuario is Estudiante) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const UserProfileScreen()),
-      );
-    }
-  }
-
+  /// 🔥 Por ahora NO filtramos nada: siempre mostramos todos los espacios.
   void _applyFilters(List<String> selectedCategoryIds) {
     setState(() {
       _selectedCategoryIds = selectedCategoryIds;
-      _filteredEspacios = _espacios.where((espacio) {
-        return _selectedCategoryIds.contains(espacio.tipo);
-      }).toList();
+      _filteredEspacios = _espacios; // ignorar filtros
     });
   }
 
@@ -129,10 +117,10 @@ class _MapaScreenState extends State<MapaScreen> {
     final usuario = AuthService().usuarioActual;
 
     return Scaffold(
-      extendBody: true, // 👈 permite que el mapa se vea detrás del BottomNavBar
+      extendBody: true,
       appBar: TopNavBar(
         categorias: _categorias,
-        onApplyFilters: _applyFilters,
+        onApplyFilters: _applyFilters, // aunque llame, no filtramos nada
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -153,6 +141,8 @@ class _MapaScreenState extends State<MapaScreen> {
                       subdomains: const ['a', 'b', 'c'],
                       userAgentPackageName: 'com.example.smart_break',
                     ),
+
+                    // 🔶 Marcadores: mostramos SIEMPRE todos los espacios cargados
                     MarkerLayer(
                       markers: _filteredEspacios.map((espacio) {
                         return Marker(
@@ -166,8 +156,8 @@ class _MapaScreenState extends State<MapaScreen> {
                             onTap: () => _showEspacioDetails(espacio),
                             child: Icon(
                               Icons.location_on,
-                              color: _getOcupacionColor(
-                                  espacio.nivelOcupacion),
+                              color:
+                                  _getOcupacionColor(espacio.nivelOcupacion),
                               size: 40,
                             ),
                           ),
@@ -177,7 +167,7 @@ class _MapaScreenState extends State<MapaScreen> {
                   ],
                 ),
 
-                // Leyenda de colores
+                // Leyenda de ocupación
                 Positioned(
                   top: 16,
                   right: 16,
@@ -188,9 +178,13 @@ class _MapaScreenState extends State<MapaScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Ocupación',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 14)),
+                          const Text(
+                            'Ocupación',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           _buildLegendItem(
                               'Vacío', _getOcupacionColor(NivelOcupacion.vacio)),
@@ -210,7 +204,7 @@ class _MapaScreenState extends State<MapaScreen> {
               ],
             ),
 
-      // FABs: crear (solo admin) + centrar
+      // Botones flotantes
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -242,13 +236,13 @@ class _MapaScreenState extends State<MapaScreen> {
         ],
       ),
 
-      // 👇 Barra reusable con transparencia
       bottomNavigationBar: BottomNavBar(
         currentIndex: 0,
         onTap: (index) {
           switch (index) {
             case 0:
-              break; // ya estás en mapa
+              // ya estás en mapa
+              break;
             case 1:
               Navigator.pushReplacementNamed(context, '/amigos');
               break;
