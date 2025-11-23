@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        node-version: [18.x, 20.x, 22.x]   # ← Si tu proyecto es Python/Java cámbialo
+        node-version: [18.x, 20.x, 22.x]   # ← 
       fail-fast: false
 
     steps:
@@ -28,7 +28,7 @@ jobs:
       run: npm ci
 
     - name: Run tests
-      run: npm test -- --coverage       # ← Cambia por "pytest" si es Python
+      run: npm test -- --coverage       # ← 
 
     - name: Upload test results (artifact)
       if: always()
